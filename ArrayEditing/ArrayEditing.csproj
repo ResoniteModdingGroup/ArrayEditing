@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyTitle>MonkeyLoader.ModTemplate</AssemblyTitle>
-    <RootNamespace>MonkeyLoader.ModTemplate</RootNamespace>
+    <AssemblyTitle>ArrayEditing</AssemblyTitle>
+    <RootNamespace>ArrayEditing</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>MonkeyLoader.ModTemplate.Resonite</PackageId>
-    <Title>MonkeyLoader Resonite Mod Template</Title>
-    <Authors>Banane9</Authors>
-    <Version>0.4.0</Version>
-    <Description>This is a template for a Resonite MonkeyLoader mod.</Description>
+    <PackageId>ArrayEditing</PackageId>
+    <Title>Array Editing</Title>
+    <Authors>Banane9, Nytra</Authors>
+    <Version>1.0.0</Version>
+    <Description>Adds proxy list UI for editing arrays in inspectors. Also improves the look of list UI a bit.</Description>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.ModTemplate</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Nytra/ResoniteArrayEditing</PackageProjectUrl>
     <PackageTags>mod; mods; monkeyloader; resonite</PackageTags>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage)</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -23,12 +23,6 @@
     <!-- Optional: Detect breaking changes from a previous stable version
     <PackageValidationBaselineVersion>0.1.0-beta</PackageValidationBaselineVersion> -->
   </PropertyGroup>
-
-  <Target Name="AddExtraFilesToPackage">
-    <ItemGroup>
-      <TfmSpecificPackageFile Include="$(ProjectDir)..\MonkeyLoader.ModTemplate.PrePatcher\bin\$(Configuration)\$(TargetFramework)\MonkeyLoader.ModTemplate.PrePatcher.*" PackagePath="lib/$(TargetFramework)/pre-patchers/" />
-    </ItemGroup>
-  </Target>
 
   <Target Name="CopyPackage" AfterTargets="Pack">
     <Copy Condition="'$(CopyToLibraries)'=='true'" SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\Mods\$(PackageId).nupkg" />
@@ -41,29 +35,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.19.0-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.22.12-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
-    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.16.6-beta" GeneratePathProperty="true" />
+    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.19.2-beta" GeneratePathProperty="true" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.6.11.74" />
+    <PackageReference Include="Resonite.Elements.Core" Version="1.2.1" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.8.6.1341" />
     <PackageReference Include="System.Text.Json" Version="8.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <!-- Reference the pre-patcher assembly from the Game Pack because PackageReference is stupid -->
-    <Reference Include="MonkeyLoader.Resonite.Data">
-      <HintPath>$(PkgMonkeyLoader_GamePacks_Resonite)\lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\MonkeyLoader.ModTemplate.PrePatcher\MonkeyLoader.ModTemplate.PrePatcher.csproj" PrivateAssets="All" />
   </ItemGroup>
 </Project>
