@@ -1,0 +1,8 @@
+{
+  "localeCode": "en",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "ModTemplate.KeyA": "Localization key A",
+    "ModTemplate.KeyB": "Another localization"
+  }
+}

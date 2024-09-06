@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyTitle>MonkeyLoader.ModTemplate.PrePatcher</AssemblyTitle>
+    <RootNamespace>MonkeyLoader.ModTemplate</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MonkeyLoader" Version="0.19.0-beta" />
+    <!-- Prevent automatically referencing all DLLs from the Game Pack -->
+    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.16.6-beta" ExcludeAssets="compile; build; runtime; native" GeneratePathProperty="true" />
+    <PackageReference Include="PolySharp" Version="1.14.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Text.Json" Version="8.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference only the pre-patcher assembly from the Game Pack -->
+    <Reference Include="MonkeyLoader.Resonite.Data">
+      <HintPath>$(PkgMonkeyLoader_GamePacks_Resonite)\lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
