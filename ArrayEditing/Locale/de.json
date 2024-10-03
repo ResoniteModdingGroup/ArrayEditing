@@ -2,7 +2,7 @@
   "localeCode": "de",
   "authors": [ "Banane9" ],
   "messages": {
-    "ModTemplate.KeyA": "Lokalisierungsschlüssel A",
-    "ModTemplate.KeyB": "Noch eine Lokalisierung"
+    "ArrayEditing.ArrayEditor.Description": "Erstellt eine Liste als Proxy für Arrays, um diese in Inspektoren editieren zu können.",
+    "ArrayEditing.ListUIImprovements.Description": "Verbessert das UI der Editoren für Listen."
   }
 }

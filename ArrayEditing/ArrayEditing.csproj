@@ -12,8 +12,9 @@
     <Version>1.0.0</Version>
     <Description>Adds proxy list UI for editing arrays in inspectors. Also improves the look of list UI a bit.</Description>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Nytra/ResoniteArrayEditing</PackageProjectUrl>
-    <PackageTags>mod; mods; monkeyloader; resonite</PackageTags>
+    <PackageProjectUrl>https://github.com/ResoniteModdingGroup/ArrayEditing</PackageProjectUrl>
+    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
+    <PackageTags>mod; mods; monkeyloader; resonite; inspector; inspectors; array; arrays; editing; member; editor</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage)</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
@@ -35,15 +36,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.22.12-beta" />
-    <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
-    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.19.2-beta" GeneratePathProperty="true" />
+    <PackageReference Include="MicroUtils.HarmonyAnalyzers" Version="1.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.20.0-beta" GeneratePathProperty="true" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Resonite.Elements.Core" Version="1.2.1" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.8.6.1341" />
+    <PackageReference Include="Resonite.Elements.Core" Version="1.3.1" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.9.31.1216" />
     <PackageReference Include="System.Text.Json" Version="8.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
