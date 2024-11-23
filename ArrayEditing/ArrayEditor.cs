@@ -497,7 +497,6 @@ namespace ArrayEditing
         // doesn't work?
         static void SetParticlePoint(ValueGradientDriver<int2>.Point point, LinearKey<ParticleBurst> arrayElem)
         {
-            Logger.Info(() => $"SetParticlePoint: {arrayElem.time} {arrayElem.value.minCount} {arrayElem.value.maxCount}");
             point.Position.Value = arrayElem.time;
             point.Value.Value = new int2(arrayElem.value.minCount, arrayElem.value.maxCount);
         }
@@ -583,7 +582,6 @@ namespace ArrayEditing
 
                             if (isSyncLinear && SupportsLerp(syncLinearType!))
                             {
-                                Logger.Info(() => "isSyncLinear owo");
                                 if (isParticleBurst)
                                     SetParticlePoint((ValueGradientDriver<int2>.Point)elem!, (LinearKey<ParticleBurst>)array.GetElement(i));
                                 else
