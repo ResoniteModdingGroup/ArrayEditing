@@ -23,6 +23,11 @@ namespace ArrayEditing
         private static readonly Type _iWorldElementType = typeof(IWorldElement);
         private static readonly Type _particleBurstType = typeof(ParticleBurst);
 
+        private static readonly MethodInfo _setLinearPoint = AccessTools.Method(typeof(ArrayEditor), nameof(SetLinearPoint));
+        private static readonly MethodInfo _setCurvePoint = AccessTools.Method(typeof(ArrayEditor), nameof(SetCurvePoint));
+
+        private static bool _skipListChanges = false;
+
         public override bool CanBeDisabled => true;
 
         public override int Priority => HarmonyLib.Priority.High;
@@ -53,11 +58,24 @@ namespace ArrayEditing
                 var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
                 var buffer = addedElements.Select(point => new CurveKey<T>(point.Position, point.Value)).ToArray();
 
-                array.Insert(buffer, startIndex);
+                if (!_skipListChanges)
+                {
+                    array.Changed -= ArrayChanged;
+                    array.Insert(buffer, startIndex);
+                    array.Changed += ArrayChanged;
+                }
+                
                 AddUpdateProxies(array, list, addedElements);
             };
 
-            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+            list.ElementsRemoved += (list, startIndex, count) =>
+            {
+                if (_skipListChanges) return;
+                if (array.Count < startIndex + count) return;
+                array.Changed -= ArrayChanged;
+                array.Remove(startIndex, count);
+                array.Changed += ArrayChanged;
+            };
         }
 
         private static void AddLinearValueProxying<T>(SyncArray<LinearKey<T>> array, SyncElementList<ValueGradientDriver<T>.Point> list)
@@ -77,11 +95,23 @@ namespace ArrayEditing
                 var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
                 var buffer = addedElements.Select(point => new LinearKey<T>(point.Position, point.Value)).ToArray();
 
-                array.Insert(buffer, startIndex);
+                if (!_skipListChanges)
+                {
+                    array.Changed -= ArrayChanged;
+                    array.Insert(buffer, startIndex);
+                    array.Changed += ArrayChanged;
+                }
                 AddUpdateProxies(array, list, addedElements);
             };
 
-            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+            list.ElementsRemoved += (list, startIndex, count) =>
+            {
+                if (_skipListChanges) return;
+                if (array.Count < startIndex + count) return;
+                array.Changed -= ArrayChanged;
+                array.Remove(startIndex, count);
+                array.Changed += ArrayChanged;
+            };
         }
 
         private static void AddListReferenceProxying<T>(SyncArray<T> array, SyncElementList<SyncRef<T>> list)
@@ -100,11 +130,23 @@ namespace ArrayEditing
                 var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
                 var buffer = addedElements.Select(syncRef => syncRef.Target).ToArray();
 
-                array.Insert(buffer, startIndex);
+                if (!_skipListChanges)
+                {
+                    array.Changed -= ArrayChanged;
+                    array.Insert(buffer, startIndex);
+                    array.Changed += ArrayChanged;
+                }
                 AddUpdateProxies(array, list, addedElements);
             };
 
-            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+            list.ElementsRemoved += (list, startIndex, count) =>
+            {
+                if (_skipListChanges) return;
+                if (array.Count < startIndex + count) return;
+                array.Changed -= ArrayChanged;
+                array.Remove(startIndex, count);
+                array.Changed += ArrayChanged;
+            };
         }
 
         private static void AddListValueProxying<T>(SyncArray<T> array, SyncElementList<Sync<T>> list)
@@ -123,11 +165,23 @@ namespace ArrayEditing
                 var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
                 var buffer = addedElements.Select(sync => sync.Value).ToArray();
 
-                array.Insert(buffer, startIndex);
+                if (!_skipListChanges)
+                {
+                    array.Changed -= ArrayChanged;
+                    array.Insert(buffer, startIndex);
+                    array.Changed += ArrayChanged;
+                }
                 AddUpdateProxies(array, list, addedElements);
             };
 
-            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+            list.ElementsRemoved += (list, startIndex, count) =>
+            {
+                if (_skipListChanges) return;
+                if (array.Count < startIndex + count) return;
+                array.Changed -= ArrayChanged;
+                array.Remove(startIndex, count);
+                array.Changed += ArrayChanged;
+            };
         }
 
         private static void AddParticleBurstListProxying(SyncArray<LinearKey<ParticleBurst>> array, SyncElementList<ValueGradientDriver<int2>.Point> list)
@@ -146,11 +200,23 @@ namespace ArrayEditing
                 var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
                 var buffer = addedElements.Select(point => new LinearKey<ParticleBurst>(point.Position, new ParticleBurst() { minCount = point.Value.Value.x, maxCount = point.Value.Value.y })).ToArray();
 
-                array.Insert(buffer, startIndex);
+                if (!_skipListChanges)
+                {
+                    array.Changed -= ArrayChanged;
+                    array.Insert(buffer, startIndex);
+                    array.Changed += ArrayChanged;
+                }
                 AddUpdateProxies(array, list, addedElements);
             };
 
-            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+            list.ElementsRemoved += (list, startIndex, count) => 
+            {
+                if (_skipListChanges) return;
+                if (array.Count < startIndex + count) return;
+                array.Changed -= ArrayChanged;
+                array.Remove(startIndex, count);
+                array.Changed += ArrayChanged;
+            };
         }
 
         private static void AddTubePointProxying(SyncArray<TubePoint> array, SyncElementList<ValueGradientDriver<float3>.Point> list)
@@ -169,11 +235,23 @@ namespace ArrayEditing
                 var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
                 var buffer = addedElements.Select(point => new TubePoint(point.Value.Value, point.Position.Value)).ToArray();
 
-                array.Insert(buffer, startIndex);
+                if (!_skipListChanges)
+                {
+                    array.Changed -= ArrayChanged;
+                    array.Insert(buffer, startIndex);
+                    array.Changed += ArrayChanged;
+                }
                 AddUpdateProxies(array, list, addedElements);
             };
 
-            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+            list.ElementsRemoved += (list, startIndex, count) =>
+            {
+                if (_skipListChanges) return;
+                if (array.Count < startIndex + count) return;
+                array.Changed -= ArrayChanged;
+                array.Remove(startIndex, count);
+                array.Changed += ArrayChanged;
+            };
         }
 
         private static void AddUpdateProxies<T>(SyncArray<LinearKey<T>> array,
@@ -184,8 +262,11 @@ namespace ArrayEditing
             {
                 point.Changed += syncObject =>
                 {
+                    if (_skipListChanges) return;
                     var index = list.IndexOfElement(point);
+                    array.Changed -= ArrayChanged;
                     array[index] = new LinearKey<T>(point.Position, point.Value);
+                    array.Changed += ArrayChanged;
                 };
             }
         }
@@ -197,9 +278,12 @@ namespace ArrayEditing
             {
                 point.Changed += field =>
                 {
+                    if (_skipListChanges) return;
                     var index = list.IndexOfElement(point);
                     var key = new LinearKey<ParticleBurst>(point.Position, new ParticleBurst() { minCount = point.Value.Value.x, maxCount = point.Value.Value.y });
+                    array.Changed -= ArrayChanged;
                     array[index] = key;
+                    array.Changed += ArrayChanged;
                 };
             }
         }
@@ -211,8 +295,11 @@ namespace ArrayEditing
             {
                 sync.OnValueChange += field =>
                 {
+                    if (_skipListChanges) return;
                     var index = list.IndexOfElement(sync);
+                    array.Changed -= ArrayChanged;
                     array[index] = sync.Value;
+                    array.Changed += ArrayChanged;
                 };
             }
         }
@@ -224,8 +311,11 @@ namespace ArrayEditing
             {
                 sync.OnValueChange += field =>
                 {
+                    if (_skipListChanges) return;
                     var index = list.IndexOfElement(sync);
+                    array.Changed -= ArrayChanged;
                     array[index] = sync.Target;
+                    array.Changed += ArrayChanged;
                 };
             }
         }
@@ -236,9 +326,12 @@ namespace ArrayEditing
             {
                 point.Changed += field =>
                 {
+                    if (_skipListChanges) return;
                     var index = list.IndexOfElement(point);
                     var tubePoint = new TubePoint(point.Value.Value, point.Position.Value);
+                    array.Changed -= ArrayChanged;
                     array[index] = tubePoint;
+                    array.Changed += ArrayChanged;
                 };
             }
         }
@@ -251,8 +344,11 @@ namespace ArrayEditing
             {
                 point.Changed += syncObject =>
                 {
+                    if (_skipListChanges) return;
                     var index = list.IndexOfElement(point);
+                    array.Changed -= ArrayChanged;
                     array[index] = new CurveKey<T>(point.Position, point.Value, array[index].leftTangent, array[index].rightTangent);
+                    array.Changed += ArrayChanged;
                 };
             }
         }
@@ -277,10 +373,12 @@ namespace ArrayEditing
 
             var proxySlotName = $"{name}-{array.ReferenceID}-Proxy";
             var proxiesSlot = ui.World.AssetsSlot;
+            var newProxy = false;
             if (proxiesSlot.FindChild(proxySlotName) is not Slot proxySlot)
             {
                 proxySlot = proxiesSlot.AddSlot(proxySlotName);
                 array.FindNearestParent<IDestroyable>().Destroyed += (IDestroyable _) => proxySlot.Destroy();
+                newProxy = true;
             }
             proxySlot.DestroyWhenLocalUserLeaves();
 
@@ -357,15 +455,16 @@ namespace ArrayEditing
                 }
             }
 
-            ui.Panel().Slot.GetComponent<LayoutElement>();
+            ui.Panel();//.Slot.GetComponent<LayoutElement>();
             var memberFieldSlot = SyncMemberEditorBuilder.GenerateMemberField(array, name, ui, labelSize);
             ui.NestOut();
+
             if (!array.IsDriven)
             {
                 SyncMemberEditorBuilder.BuildList(list, name, listField, ui);
                 var listSlot = ui.Current;
                 listSlot.DestroyWhenLocalUserLeaves();
-                void ArrayChanged(IChangeable changeable)
+                void ArrayDriveCheck(IChangeable changeable)
                 {
                     if (((ISyncArray)changeable).IsDriven)
                     {
@@ -376,10 +475,10 @@ namespace ArrayEditing
                         RadiantUI_Constants.SetupEditorStyle(newUi);
                         newUi.Text("(array is driven)");
                         proxySlot?.Destroy();
-                        array.Changed -= ArrayChanged;
+                        array.Changed -= ArrayDriveCheck;
                     }
                 }
-                array.Changed += ArrayChanged;
+                array.Changed += ArrayDriveCheck;
             }
             else
             {
@@ -387,7 +486,124 @@ namespace ArrayEditing
                 ui.Text(in text);
             }
 
+            if (newProxy)
+            {
+                array.Changed += ArrayChanged;
+            }
+
             return true;
+        }
+
+        // doesn't work?
+        static void SetParticlePoint(ValueGradientDriver<int2>.Point point, LinearKey<ParticleBurst> arrayElem)
+        {
+            Logger.Info(() => $"SetParticlePoint: {arrayElem.time} {arrayElem.value.minCount} {arrayElem.value.maxCount}");
+            point.Position.Value = arrayElem.time;
+            point.Value.Value = new int2(arrayElem.value.minCount, arrayElem.value.maxCount);
+        }
+
+        static void SetLinearPoint<T>(ValueGradientDriver<T>.Point point, LinearKey<T> arrayElem) where T : IEquatable<T>
+        {
+            point.Position.Value = arrayElem.time;
+            point.Value.Value = arrayElem.value;
+        }
+
+        static void SetCurvePoint<T>(ValueGradientDriver<T>.Point point, CurveKey<T> arrayElem) where T : IEquatable<T>
+        {
+            point.Position.Value = arrayElem.time;
+            point.Value.Value = arrayElem.value;
+        }
+
+        static void SetTubePoint(ValueGradientDriver<float3>.Point point, TubePoint arrayElem)
+        {
+            point.Position.Value = arrayElem.radius;
+            point.Value.Value = arrayElem.position;
+        }
+
+        static void ArrayChanged(IChangeable changeable)
+        {
+            var array = (ISyncArray)changeable;
+
+            if (array.IsDriven)
+            {
+                array.Changed -= ArrayChanged;
+                return;
+            }
+
+            var proxySlotName = $"{array.Name}-{array.ReferenceID}-Proxy";
+            var proxiesSlot = array.World.AssetsSlot;
+            if (proxiesSlot.FindChild(proxySlotName) is Slot proxySlot)
+            {
+                ISyncList? list = null;
+                foreach (var comp in proxySlot.Components)
+                {
+                    if (comp.GetType().IsGenericType && comp.GetType().GetGenericTypeDefinition() == typeof(ValueMultiplexer<>))
+                    {
+                        list = comp.GetSyncMember("Values") as ISyncList;
+                        _skipListChanges = true;
+                        list.World.RunSynchronously(() => _skipListChanges = false);
+                        list.EnsureExactElementCount(array.Count);
+                        for (int i = 0; i < array.Count; i++)
+                        {
+                            ((IField)list.GetElement(i)).BoxedValue = array.GetElement(i);
+                        }
+                    }
+                    else if (comp.GetType().IsGenericType && comp.GetType().GetGenericTypeDefinition() == typeof(ReferenceMultiplexer<>))
+                    {
+                        list = comp.GetSyncMember("References") as ISyncList;
+                        _skipListChanges = true;
+                        list.World.RunSynchronously(() => _skipListChanges = false);
+                        list.EnsureExactElementCount(array.Count);
+                        for (int i = 0; i < array.Count; i++)
+                        {
+                            ((ISyncRef)list.GetElement(i)).Target = (IWorldElement)array.GetElement(i);
+                        }
+                    }
+                    else if (comp.GetType().IsGenericType && comp.GetType().GetGenericTypeDefinition() == typeof(ValueGradientDriver<>))
+                    {
+                        list = comp.GetSyncMember("Points") as ISyncList;
+                        _skipListChanges = true;
+                        list.World.RunSynchronously(() => _skipListChanges = false);
+                        list.EnsureExactElementCount(array.Count);
+
+                        var isSyncLinear = TryGetGenericParameters(typeof(SyncLinear<>), array.GetType(), out var syncLinearGenericParameters);
+                        var isSyncCurve = TryGetGenericParameters(typeof(SyncCurve<>), array.GetType(), out var syncCurveGenericParameters);
+                        var syncLinearType = syncLinearGenericParameters?.First();
+                        var syncCurveType = syncCurveGenericParameters?.First();
+                        var isParticleBurst = syncLinearType == _particleBurstType;
+
+                        if (!TryGetGenericParameters(typeof(SyncArray<>), array.GetType(), out var genericParameters))
+                            return;
+
+                        var arrayType = genericParameters!.Value.First();
+
+                        for (int i = 0; i < array.Count; i++)
+                        {
+                            var elem = list.GetElement(i);
+
+                            if (isSyncLinear && SupportsLerp(syncLinearType!))
+                            {
+                                Logger.Info(() => "isSyncLinear owo");
+                                if (isParticleBurst)
+                                    SetParticlePoint((ValueGradientDriver<int2>.Point)elem!, (LinearKey<ParticleBurst>)array.GetElement(i));
+                                else
+                                    _setLinearPoint.MakeGenericMethod(syncLinearType).Invoke(null, [elem, array.GetElement(i)]);
+                            }
+                            else if (isSyncCurve && SupportsLerp(syncCurveType!))
+                            {
+                                _setCurvePoint.MakeGenericMethod(syncCurveType).Invoke(null, [elem, array.GetElement(i)]);
+                            }
+                            else
+                            {
+                                if (arrayType == typeof(TubePoint))
+                                {
+                                    SetTubePoint((ValueGradientDriver<float3>.Point)elem!, (TubePoint)array.GetElement(i));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private static Component GetOrAttachComponent(Slot targetSlot, Type type, out bool attachedNew)
