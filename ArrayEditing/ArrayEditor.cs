@@ -21,7 +21,6 @@ namespace ArrayEditing
         private static readonly MethodInfo _addListReferenceProxying = AccessTools.Method(typeof(ArrayEditor), nameof(AddListReferenceProxying));
         private static readonly MethodInfo _addListValueProxying = AccessTools.Method(typeof(ArrayEditor), nameof(AddListValueProxying));
         private static readonly Type _iWorldElementType = typeof(IWorldElement);
-        private static readonly Type _particleBurstType = typeof(ParticleBurst);
 
         private static readonly MethodInfo _setLinearPoint = AccessTools.Method(typeof(ArrayEditor), nameof(SetLinearPoint));
         private static readonly MethodInfo _setCurvePoint = AccessTools.Method(typeof(ArrayEditor), nameof(SetCurvePoint));
@@ -184,41 +183,6 @@ namespace ArrayEditing
             };
         }
 
-        private static void AddParticleBurstListProxying(SyncArray<LinearKey<ParticleBurst>> array, SyncElementList<ValueGradientDriver<int2>.Point> list)
-        {
-            foreach (var burst in array)
-            {
-                var point = list.Add();
-                point.Position.Value = burst.time;
-                point.Value.Value = new int2(burst.value.minCount, burst.value.maxCount);
-            }
-
-            AddUpdateProxies(array, list, list.Elements);
-
-            list.ElementsAdded += (list, startIndex, count) =>
-            {
-                var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
-                var buffer = addedElements.Select(point => new LinearKey<ParticleBurst>(point.Position, new ParticleBurst() { minCount = point.Value.Value.x, maxCount = point.Value.Value.y })).ToArray();
-
-                if (!_skipListChanges)
-                {
-                    array.Changed -= ArrayChanged;
-                    array.Insert(buffer, startIndex);
-                    array.Changed += ArrayChanged;
-                }
-                AddUpdateProxies(array, list, addedElements);
-            };
-
-            list.ElementsRemoved += (list, startIndex, count) => 
-            {
-                if (_skipListChanges) return;
-                if (array.Count < startIndex + count) return;
-                array.Changed -= ArrayChanged;
-                array.Remove(startIndex, count);
-                array.Changed += ArrayChanged;
-            };
-        }
-
         private static void AddTubePointProxying(SyncArray<TubePoint> array, SyncElementList<ValueGradientDriver<float3>.Point> list)
         {
             foreach (var tubePoint in array)
@@ -266,23 +230,6 @@ namespace ArrayEditing
                     var index = list.IndexOfElement(point);
                     array.Changed -= ArrayChanged;
                     array[index] = new LinearKey<T>(point.Position, point.Value);
-                    array.Changed += ArrayChanged;
-                };
-            }
-        }
-
-        private static void AddUpdateProxies(SyncArray<LinearKey<ParticleBurst>> array,
-            SyncElementList<ValueGradientDriver<int2>.Point> list, IEnumerable<ValueGradientDriver<int2>.Point> elements)
-        {
-            foreach (var point in elements)
-            {
-                point.Changed += field =>
-                {
-                    if (_skipListChanges) return;
-                    var index = list.IndexOfElement(point);
-                    var key = new LinearKey<ParticleBurst>(point.Position, new ParticleBurst() { minCount = point.Value.Value.x, maxCount = point.Value.Value.y });
-                    array.Changed -= ArrayChanged;
-                    array[index] = key;
                     array.Changed += ArrayChanged;
                 };
             }
@@ -366,11 +313,6 @@ namespace ArrayEditing
             var syncLinearType = syncLinearGenericParameters?.First();
             var syncCurveType = syncCurveGenericParameters?.First();
 
-            var isParticleBurst = syncLinearType == _particleBurstType;
-
-            if (isSyncLinear && isParticleBurst)
-                syncLinearType = typeof(int2);
-
             var proxySlotName = $"{name}-{array.ReferenceID}-Proxy";
             var proxiesSlot = ui.World.AssetsSlot;
             var newProxy = false;
@@ -395,10 +337,7 @@ namespace ArrayEditing
 
                 if (attachedNew)
                 {
-                    if (isParticleBurst)
-                        AddParticleBurstListProxying((SyncArray<LinearKey<ParticleBurst>>)array, (SyncElementList<ValueGradientDriver<int2>.Point>)list);
-                    else
-                        _addLinearValueProxying.MakeGenericMethod(syncLinearType).Invoke(null, [array, list]);
+                    _addLinearValueProxying.MakeGenericMethod(syncLinearType).Invoke(null, [array, list]);
                 }
             }
             else if (isSyncCurve && SupportsLerp(syncCurveType!))
@@ -494,13 +433,6 @@ namespace ArrayEditing
             return true;
         }
 
-        // doesn't work?
-        static void SetParticlePoint(ValueGradientDriver<int2>.Point point, LinearKey<ParticleBurst> arrayElem)
-        {
-            point.Position.Value = arrayElem.time;
-            point.Value.Value = new int2(arrayElem.value.minCount, arrayElem.value.maxCount);
-        }
-
         static void SetLinearPoint<T>(ValueGradientDriver<T>.Point point, LinearKey<T> arrayElem) where T : IEquatable<T>
         {
             point.Position.Value = arrayElem.time;
@@ -569,7 +501,6 @@ namespace ArrayEditing
                         var isSyncCurve = TryGetGenericParameters(typeof(SyncCurve<>), array.GetType(), out var syncCurveGenericParameters);
                         var syncLinearType = syncLinearGenericParameters?.First();
                         var syncCurveType = syncCurveGenericParameters?.First();
-                        var isParticleBurst = syncLinearType == _particleBurstType;
 
                         if (!TryGetGenericParameters(typeof(SyncArray<>), array.GetType(), out var genericParameters))
                             return;
@@ -582,10 +513,7 @@ namespace ArrayEditing
 
                             if (isSyncLinear && SupportsLerp(syncLinearType!))
                             {
-                                if (isParticleBurst)
-                                    SetParticlePoint((ValueGradientDriver<int2>.Point)elem!, (LinearKey<ParticleBurst>)array.GetElement(i));
-                                else
-                                    _setLinearPoint.MakeGenericMethod(syncLinearType).Invoke(null, [elem, array.GetElement(i)]);
+                                _setLinearPoint.MakeGenericMethod(syncLinearType).Invoke(null, [elem, array.GetElement(i)]);
                             }
                             else if (isSyncCurve && SupportsLerp(syncCurveType!))
                             {
